@@ -63,6 +63,15 @@
   .intro p{margin:0;color:var(--muted);font-size:14px}
   .intro p + p{margin-top:6px}
 
+  .mode-chooser{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .mode-status{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px;font-size:14px;color:var(--muted)}
+  .link-btn{
+    background:none;border:none;color:var(--accent);font-family:inherit;
+    font-size:14px;cursor:pointer;padding:0;
+    text-decoration:underline;text-underline-offset:3px;
+  }
+  .link-btn:hover{filter:brightness(1.25)}
+
   /* ---------- Score panel ---------- */
   .score-panel{
     background:linear-gradient(160deg,#132a2a,#141b24 60%);
@@ -78,6 +87,7 @@
   .score-panel .pct{font-size:15px;color:var(--muted);margin-top:2px}
   .score-panel .msg{margin-top:12px;font-size:15px}
   .score-panel .sub{margin-top:6px;font-size:13px;color:var(--muted)}
+  .score-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
 
   /* ---------- Question card ---------- */
   .q-card{
@@ -211,28 +221,38 @@
 <header class="topbar">
   <div class="brand">Respiratory System <span>· Quiz</span></div>
   <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
-  <div class="counter" id="counter">0 / 50 answered</div>
+  <div class="counter" id="counter">Not started</div>
 </header>
 
 <main>
   <div class="intro">
     <h1>Understanding body systems — Respiratory system</h1>
-    <p>50 multiple-choice questions covering structure, function, breathing mechanics, gas exchange and control.</p>
+    <p>Multiple-choice questions covering structure, function, breathing mechanics, gas exchange and control.</p>
     <p>Click <strong style="color:var(--hint)">💡 Hint</strong> on any question if you get stuck. When you're done, hit <strong>Finish</strong> to see your score and review every answer.</p>
+
+    <div id="modeChooser" class="mode-chooser">
+      <button id="startFullBtn" class="btn btn-primary" type="button">Full quiz · 50 questions</button>
+      <button id="startQuickBtn" class="btn btn-ghost" type="button">Quick quiz · 10 random</button>
+    </div>
+
+    <div id="modeStatus" class="mode-status hidden">
+      <span id="modeLabel"></span>
+      <button id="changeModeBtn" class="link-btn" type="button">Change mode</button>
+    </div>
   </div>
 
   <section id="scorePanel" class="score-panel hidden"></section>
 
   <div id="quiz"></div>
 
-  <div class="actions">
+  <div id="actions" class="actions hidden">
     <button id="finishBtn" class="btn btn-primary">Finish &amp; see score</button>
     <button id="resetBtn" class="btn btn-ghost hidden">Retake quiz</button>
   </div>
 </main>
 
 <script>
-const questions = [
+const questionPool = [
   {
     q:"What is the main job of the respiratory system?",
     options:[
@@ -247,7 +267,7 @@ const questions = [
   },
   {
     q:"In the ABCDE approach, which two areas are assessed before circulation?",
-    options:["Airway and Breathing","Breathing and Disability","Breathing and Exposure","Airway and Exposure"],
+    options:["Airway and Breathing","Breathing and Disability","Circulation and Disability","Disability and Exposure"],
     answer:0,
     hint:"The letters are in order for a reason — A and B come first.",
     explain:"A = Airway, B = Breathing, C = Circulation, D = Disability, E = Exposure. Airway and breathing are always checked before circulation."
@@ -738,18 +758,78 @@ const questions = [
 /* ------------------------------------------------------------------ */
 /*  State and rendering                                                */
 /* ------------------------------------------------------------------ */
-const quizEl     = document.getElementById('quiz');
-const counterEl  = document.getElementById('counter');
-const barEl      = document.getElementById('progressBar');
-const scoreEl    = document.getElementById('scorePanel');
-const finishBtn  = document.getElementById('finishBtn');
-const resetBtn   = document.getElementById('resetBtn');
+const quizEl        = document.getElementById('quiz');
+const counterEl     = document.getElementById('counter');
+const barEl         = document.getElementById('progressBar');
+const scoreEl       = document.getElementById('scorePanel');
+const finishBtn     = document.getElementById('finishBtn');
+const resetBtn      = document.getElementById('resetBtn');
+const actionsEl     = document.getElementById('actions');
+const modeChooser   = document.getElementById('modeChooser');
+const modeStatus    = document.getElementById('modeStatus');
+const modeLabel     = document.getElementById('modeLabel');
+const changeModeBtn = document.getElementById('changeModeBtn');
 
-let answers  = new Array(questions.length).fill(null);
+let activeQuestions = [];
+let answers  = [];
+let mode     = null;          // 'full' | 'quick'
 let finished = false;
 
+function shuffle(arr){
+  for (let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function startQuiz(newMode){
+  mode = newMode;
+  activeQuestions = mode === 'full'
+    ? questionPool.slice()
+    : shuffle(questionPool.slice()).slice(0, 10);
+
+  answers  = new Array(activeQuestions.length).fill(null);
+  finished = false;
+
+  scoreEl.classList.add('hidden');
+  scoreEl.innerHTML = '';
+  finishBtn.classList.remove('hidden');
+  resetBtn.classList.add('hidden');
+  resetBtn.textContent = mode === 'quick' ? 'Retake · 10 new random' : 'Retake quiz';
+
+  modeChooser.classList.add('hidden');
+  modeStatus.classList.remove('hidden');
+  modeLabel.textContent = mode === 'full'
+    ? 'Full quiz · 50 questions'
+    : 'Quick quiz · 10 random questions';
+
+  actionsEl.classList.remove('hidden');
+
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showModeScreen(){
+  activeQuestions = [];
+  answers  = [];
+  finished = false;
+  mode     = null;
+
+  quizEl.innerHTML = '';
+  scoreEl.classList.add('hidden');
+  scoreEl.innerHTML = '';
+  modeChooser.classList.remove('hidden');
+  modeStatus.classList.add('hidden');
+  actionsEl.classList.add('hidden');
+
+  counterEl.textContent = 'Not started';
+  barEl.style.width = '0%';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function render(){
-  quizEl.innerHTML = questions.map((q, qi) => `
+  quizEl.innerHTML = activeQuestions.map((q, qi) => `
     <article class="q-card" id="card-${qi}">
       <div class="q-head">
         <span class="q-num">${qi + 1}</span>
@@ -772,9 +852,15 @@ function render(){
 }
 
 function updateProgress(){
+  const total = activeQuestions.length;
+  if (!total){
+    counterEl.textContent = 'Not started';
+    barEl.style.width = '0%';
+    return;
+  }
   const answered = answers.filter(a => a !== null).length;
-  counterEl.textContent = `${answered} / ${questions.length} answered`;
-  barEl.style.width = (answered / questions.length * 100) + '%';
+  counterEl.textContent = `${answered} / ${total} answered`;
+  barEl.style.width = (answered / total * 100) + '%';
 }
 
 /* ------------------------------------------------------------------ */
@@ -810,15 +896,15 @@ quizEl.addEventListener('click', (e) => {
 /*  Finish                                                             */
 /* ------------------------------------------------------------------ */
 finishBtn.addEventListener('click', () => {
-  if (finished) return;
+  if (finished || !activeQuestions.length) return;
   finished = true;
 
   let score = 0;
 
-  questions.forEach((q, qi) => {
-    const card = document.getElementById('card-' + qi);
+  activeQuestions.forEach((q, qi) => {
+    const card   = document.getElementById('card-' + qi);
     const chosen = answers[qi];
-    const opts = card.querySelectorAll('.opt');
+    const opts   = card.querySelectorAll('.opt');
     const isCorrect = chosen === q.answer;
     if (isCorrect) score++;
 
@@ -839,7 +925,9 @@ finishBtn.addEventListener('click', () => {
     card.classList.add(isCorrect ? 'card-correct' : 'card-wrong');
   });
 
-  const pct = Math.round(score / questions.length * 100);
+  const total = activeQuestions.length;
+  const pct   = Math.round(score / total * 100);
+
   let msg;
   if (pct >= 90)      msg = "Excellent — you have a really solid grasp of the respiratory system.";
   else if (pct >= 75) msg = "Good work — a few details to brush up on.";
@@ -847,15 +935,20 @@ finishBtn.addEventListener('click', () => {
   else                msg = "Worth another pass through the notes, then have another go.";
 
   scoreEl.innerHTML = `
-    <div class="big">${score} / ${questions.length}</div>
+    <div class="big">${score} / ${total}</div>
     <div class="pct">${pct}%</div>
     <div class="msg">${msg}</div>
     <div class="sub">Scroll down to review every question, with the correct answers and explanations shown.</div>
-    <button id="retakeTopBtn" class="btn btn-primary" style="margin-top:16px">Retake quiz</button>
+    <div class="score-actions">
+      <button id="retakeTopBtn" class="btn btn-primary" type="button">
+        ${mode === 'quick' ? 'Retake · 10 new random' : 'Retake full quiz'}
+      </button>
+      <button id="changeModeTopBtn" class="btn btn-ghost" type="button">Change mode</button>
+    </div>
   `;
   scoreEl.classList.remove('hidden');
 
-  counterEl.textContent = `Score: ${score} / ${questions.length}`;
+  counterEl.textContent = `Score: ${score} / ${total}`;
   barEl.style.width = '100%';
 
   finishBtn.classList.add('hidden');
@@ -865,28 +958,25 @@ finishBtn.addEventListener('click', () => {
 });
 
 /* ------------------------------------------------------------------ */
-/*  Reset                                                              */
+/*  Reset / mode switching                                             */
 /* ------------------------------------------------------------------ */
 function resetQuiz(){
-  answers = new Array(questions.length).fill(null);
-  finished = false;
-  scoreEl.classList.add('hidden');
-  scoreEl.innerHTML = '';
-  finishBtn.classList.remove('hidden');
-  resetBtn.classList.add('hidden');
-  render();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  startQuiz(mode);   // quick mode draws a fresh set of 10
 }
 
 resetBtn.addEventListener('click', resetQuiz);
 
-/* Retake button inside the score panel at the top */
 scoreEl.addEventListener('click', (e) => {
-  if (e.target.closest('#retakeTopBtn')) resetQuiz();
+  if (e.target.closest('#retakeTopBtn'))     resetQuiz();
+  if (e.target.closest('#changeModeTopBtn')) showModeScreen();
 });
 
+document.getElementById('startFullBtn').addEventListener('click', () => startQuiz('full'));
+document.getElementById('startQuickBtn').addEventListener('click', () => startQuiz('quick'));
+changeModeBtn.addEventListener('click', showModeScreen);
+
 /* ------------------------------------------------------------------ */
-render();
+showModeScreen();
 </script>
 </body>
 </html>
