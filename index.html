@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Respiratory System — Quiz</title>
+<style>
+  :root{
+    --bg:#0b1016;
+    --panel:#141b24;
+    --panel-2:#1b2530;
+    --border:#26313d;
+    --text:#e6edf3;
+    --muted:#93a3b3;
+    --accent:#4dd0c1;
+    --correct:#3fb950;
+    --wrong:#f85149;
+    --hint:#f2c14e;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- Sticky top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:30;
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    padding:12px 20px;
+    background:rgba(11,16,22,.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .brand{font-weight:700;letter-spacing:.02em;color:var(--accent);white-space:nowrap;font-size:15px}
+  .brand span{color:var(--muted);font-weight:500}
+  .progress-wrap{
+    flex:1 1 160px;min-width:120px;height:8px;
+    background:var(--panel-2);border-radius:99px;overflow:hidden;
+  }
+  .progress-bar{
+    height:100%;width:0%;border-radius:99px;
+    background:linear-gradient(90deg,#2f9e8f,var(--accent));
+    transition:width .25s ease;
+  }
+  .counter{font-size:13px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+  /* ---------- Layout ---------- */
+  main{max-width:900px;margin:0 auto;padding:26px 18px 90px}
+
+  .intro{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px 20px;
+    margin-bottom:22px;
+  }
+  .intro h1{margin:0 0 6px;font-size:20px;letter-spacing:.01em}
+  .intro p{margin:0;color:var(--muted);font-size:14px}
+  .intro p + p{margin-top:6px}
+
+  /* ---------- Score panel ---------- */
+  .score-panel{
+    background:linear-gradient(160deg,#132a2a,#141b24 60%);
+    border:1px solid #2b4a45;
+    border-radius:16px;
+    padding:22px;
+    margin-bottom:22px;
+    text-align:center;
+    animation:pop .35s ease;
+  }
+  @keyframes pop{from{transform:scale(.97);opacity:0}to{transform:scale(1);opacity:1}}
+  .score-panel .big{font-size:44px;font-weight:800;color:var(--accent);line-height:1.1;font-variant-numeric:tabular-nums}
+  .score-panel .pct{font-size:15px;color:var(--muted);margin-top:2px}
+  .score-panel .msg{margin-top:12px;font-size:15px}
+  .score-panel .sub{margin-top:6px;font-size:13px;color:var(--muted)}
+
+  /* ---------- Question card ---------- */
+  .q-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px 18px 14px;
+    margin-bottom:16px;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .q-card.card-correct{border-color:#2c5a37}
+  .q-card.card-wrong{border-color:#5c2a2c}
+
+  .q-head{display:flex;gap:12px;align-items:flex-start}
+  .q-num{
+    flex:0 0 auto;
+    width:28px;height:28px;border-radius:50%;
+    display:grid;place-items:center;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--muted);
+    font-size:13px;font-weight:700;
+    font-variant-numeric:tabular-nums;
+  }
+  .q-text{font-size:15.5px;font-weight:600;padding-top:1px}
+
+  .options{display:grid;gap:8px;margin-top:14px}
+  .opt{
+    display:flex;gap:11px;align-items:flex-start;
+    width:100%;text-align:left;
+    background:var(--panel-2);
+    border:1px solid #2b3947;
+    color:var(--text);
+    padding:11px 14px;
+    border-radius:10px;
+    font-size:14.5px;
+    font-family:inherit;
+    line-height:1.45;
+    cursor:pointer;
+    transition:background .15s ease,border-color .15s ease;
+  }
+  .opt:hover:not(:disabled){border-color:var(--accent);background:#22303c}
+  .opt:disabled{cursor:default}
+  .marker{
+    flex:0 0 auto;position:relative;
+    width:18px;height:18px;margin-top:1px;
+    border-radius:50%;
+    border:2px solid #4a5b6b;
+    transition:border-color .15s ease;
+  }
+  .opt.selected{border-color:var(--accent);background:#14312e}
+  .opt.selected .marker{border-color:var(--accent)}
+  .opt.selected .marker::after{
+    content:"";position:absolute;inset:3px;border-radius:50%;background:var(--accent);
+  }
+  .opt.correct{border-color:var(--correct);background:#12301c}
+  .opt.correct .marker{border-color:var(--correct)}
+  .opt.correct .marker::after{
+    content:"";position:absolute;inset:3px;border-radius:50%;background:var(--correct);
+  }
+  .opt.wrong{border-color:var(--wrong);background:#3a1417}
+  .opt.wrong .marker{border-color:var(--wrong)}
+  .opt.wrong .marker::after{
+    content:"";position:absolute;inset:3px;border-radius:50%;background:var(--wrong);
+  }
+
+  .q-foot{display:flex;align-items:center;justify-content:flex-end;margin-top:12px}
+  .hint-btn{
+    background:transparent;
+    border:1px solid #2b3947;
+    color:var(--muted);
+    padding:6px 14px;
+    border-radius:99px;
+    font-size:13px;
+    font-family:inherit;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .hint-btn:hover{border-color:var(--hint);color:var(--hint)}
+
+  .hint{
+    margin-top:10px;
+    padding:10px 14px;
+    background:#241f12;
+    border-left:3px solid var(--hint);
+    border-radius:8px;
+    font-size:14px;
+    color:#ffe9b0;
+  }
+  .explain{
+    margin-top:10px;
+    padding:10px 14px;
+    border-radius:8px;
+    font-size:14px;
+    border-left:3px solid var(--border);
+    background:var(--panel-2);
+  }
+  .explain.good{border-left-color:var(--correct);background:#12301c;color:#c9f3d3}
+  .explain.bad{border-left-color:var(--wrong);background:#2b1214;color:#ffd3d3}
+  .explain strong{font-weight:700}
+  .explain em{color:var(--muted);font-style:normal;font-size:13px}
+
+  .hidden{display:none !important}
+
+  /* ---------- Actions ---------- */
+  .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:28px}
+  .btn{
+    font-family:inherit;font-size:15px;font-weight:700;
+    padding:13px 30px;border-radius:11px;border:none;cursor:pointer;
+    transition:transform .12s ease,filter .15s ease;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--accent);color:#06231f}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-ghost{
+    background:transparent;color:var(--text);
+    border:1px solid var(--border);
+  }
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+  @media (max-width:520px){
+    .brand{font-size:14px}
+    .q-text{font-size:14.5px}
+    .opt{font-size:14px}
+    .score-panel .big{font-size:36px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Respiratory System <span>· Quiz</span></div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+  <div class="counter" id="counter">0 / 50 answered</div>
+</header>
+
+<main>
+  <div class="intro">
+    <h1>Understanding body systems — Respiratory system</h1>
+    <p>50 multiple-choice questions covering structure, function, breathing mechanics, gas exchange and control.</p>
+    <p>Click <strong style="color:var(--hint)">💡 Hint</strong> on any question if you get stuck. When you're done, hit <strong>Finish</strong> to see your score and review every answer.</p>
+  </div>
+
+  <section id="scorePanel" class="score-panel hidden"></section>
+
+  <div id="quiz"></div>
+
+  <div class="actions">
+    <button id="finishBtn" class="btn btn-primary">Finish &amp; see score</button>
+    <button id="resetBtn" class="btn btn-ghost hidden">Retake quiz</button>
+  </div>
+</main>
+
+<script>
+const questions = [
+  {
+    q:"What is the main job of the respiratory system?",
+    options:[
+      "To produce carbon dioxide for the body",
+      "To bring oxygen into the body and eliminate carbon dioxide",
+      "To pump blood around the body",
+      "To absorb nutrients from the air"
+    ],
+    answer:1,
+    hint:"Think about the two gases that are exchanged and which direction each one travels.",
+    explain:"The respiratory system brings oxygen in and removes carbon dioxide. Pumping blood is the cardiovascular system's job."
+  },
+  {
+    q:"In the ABCDE approach, which two areas are assessed before circulation?",
+    options:["Airway and Breathing","Breathing and Disability","Breathing and Exposure","Airway and Exposure"],
+    answer:0,
+    hint:"The letters are in order for a reason — A and B come first.",
+    explain:"A = Airway, B = Breathing, C = Circulation, D = Disability, E = Exposure. Airway and breathing are always checked before circulation."
+  },
+  {
+    q:"Which of these structures is part of the upper respiratory tract?",
+    options:["Trachea","Bronchi","Larynx","Alveoli"],
+    answer:2,
+    hint:"The larynx is often used as the dividing line between upper and lower.",
+    explain:"Upper tract = external nose, nasal cavity, pharynx and larynx. The trachea, bronchi, bronchioles and alveoli are lower tract."
+  },
+  {
+    q:"The trachea divides into the right and left bronchi at which structure?",
+    options:["Hilum","Carina","Epiglottis","Alveolar duct"],
+    answer:1,
+    hint:"It's the ridge at the very bottom of the windpipe, around the level of the 5th thoracic vertebra.",
+    explain:"The carina is the point where the trachea splits into the two primary bronchi."
+  },
+  {
+    q:"Which structure closes off the larynx during swallowing to protect the airway?",
+    options:["Epiglottis","Thyroid cartilage","Carina","Uvula"],
+    answer:0,
+    hint:"A leaf-shaped cartilage flap that sits above the vocal cords.",
+    explain:"The epiglottis flips down over the larynx during swallowing so food and drink go into the oesophagus, not the airway."
+  },
+  {
+    q:"Which structure is known as the voice box and contains the vocal cords?",
+    options:["Pharynx","Larynx","Trachea","Epiglottis"],
+    answer:1,
+    hint:"It sits between the pharynx and the trachea.",
+    explain:"The larynx contains the vocal cords, which vibrate as exhaled air passes through them."
+  },
+  {
+    q:"The 'Adam's apple' at the front of the larynx is which structure?",
+    options:["Thyroid cartilage","Cricoid ring","Epiglottis","Vocal cord"],
+    answer:0,
+    hint:"It's the largest of the laryngeal cartilages and is more prominent in men.",
+    explain:"The thyroid cartilage forms the front of the larynx and is commonly called the Adam's apple."
+  },
+  {
+    q:"What is the main role of the coarse hairs at the front of the nasal cavity?",
+    options:["To warm the air","To trap larger dust particles","To produce mucus","To detect smells"],
+    answer:1,
+    hint:"They are the first physical barrier air meets.",
+    explain:"Coarse hairs trap larger dust particles. Fine dust is handled further back by mucus and cilia."
+  },
+  {
+    q:"What do the cilia in the airway lining do?",
+    options:[
+      "They secrete mucus",
+      "They sweep mucus and trapped dust towards the pharynx",
+      "They exchange oxygen for carbon dioxide",
+      "They warm and moisten the air"
+    ],
+    answer:1,
+    hint:"Think of them as tiny oars beating in one direction.",
+    explain:"Cilia beat to propel the dust-laden mucus towards the pharynx, where it is swallowed or coughed up."
+  },
+  {
+    q:"Which cells in the airway lining secrete mucus?",
+    options:["Squamous cells","Goblet cells","Ciliated cells","Red blood cells"],
+    answer:1,
+    hint:"Their name comes from their shape — like a drinking vessel.",
+    explain:"Goblet cells secrete mucus, which traps fine dust. A healthy person produces around 100 mL of mucus a day."
+  },
+  {
+    q:"Which of the following is NOT a function of the nose?",
+    options:["Warming the air","Moistening the air","Filtering dust and particles","Exchanging oxygen and carbon dioxide"],
+    answer:3,
+    hint:"Gas exchange only happens at the very end of the airway.",
+    explain:"The nose warms, moistens and filters air. Gas exchange happens in the alveoli."
+  },
+  {
+    q:"What are the sinuses?",
+    options:[
+      "Air-filled cavities in the skull that drain into the nasal cavity",
+      "Muscles that help with breathing",
+      "Branches of the bronchial tree",
+      "Small air sacs in the lungs"
+    ],
+    answer:0,
+    hint:"Frontal, maxillary, ethmoid and sphenoid are the four pairs.",
+    explain:"The sinuses are mucous-membrane-lined air cavities in the skull (frontal, maxillary, ethmoid, sphenoid) that drain into the nasal cavity."
+  },
+  {
+    q:"Which three parts make up the pharynx?",
+    options:[
+      "Nasopharynx, oropharynx, laryngopharynx",
+      "Nasopharynx, tracheopharynx, laryngopharynx",
+      "Oropharynx, bronchopharynx, laryngopharynx",
+      "Frontal, maxillary and sphenoid"
+    ],
+    answer:0,
+    hint:"They're named for the structures they sit behind, from top to bottom.",
+    explain:"The pharynx has three parts: nasopharynx (behind the nose), oropharynx (behind the mouth) and laryngopharynx (behind the larynx)."
+  },
+  {
+    q:"What is the function of the tonsils in the pharynx?",
+    options:[
+      "To warm and moisten air",
+      "They are lymphatic tissue that helps protect against microbes",
+      "To produce sound",
+      "To equalise pressure in the ear"
+    ],
+    answer:1,
+    hint:"They're part of the immune system, which is why they're only removed when necessary.",
+    explain:"Tonsils are lymphatic tissue that helps protect against microbes. Because they are part of the immune system, they are removed only if necessary."
+  },
+  {
+    q:"Why do your ears 'pop' when you swallow on a plane?",
+    options:[
+      "The eardrum vibrates from the engine noise",
+      "The pharynx equalises air pressure with the middle ear",
+      "The sinuses fill with fluid",
+      "The vocal cords relax"
+    ],
+    answer:1,
+    hint:"Think about the tube that connects the back of the throat to the middle ear.",
+    explain:"Swallowing opens the connection between the pharynx and the middle ear, equalising the pressure on either side of the eardrum."
+  },
+  {
+    q:"Which best describes the cartilage in the trachea?",
+    options:[
+      "A single complete ring of cartilage",
+      "16–20 C-shaped rings with a gap at the back",
+      "No cartilage at all, only smooth muscle",
+      "Two flat plates of bone"
+    ],
+    answer:1,
+    hint:"The gap matters — something has to pass behind the trachea.",
+    explain:"There are 16–20 C-shaped cartilage rings. The gap at the back allows the oesophagus to bulge forwards when you swallow."
+  },
+  {
+    q:"Why is an inhaled foreign object more likely to enter the right bronchus?",
+    options:[
+      "It is narrower and longer",
+      "It is wider, shorter and more vertical",
+      "It branches at a sharper angle",
+      "It has more cartilage"
+    ],
+    answer:1,
+    hint:"Think about the angle a falling object would take.",
+    explain:"The right bronchus is wider, shorter and more vertical, so aspirated material tends to follow it."
+  },
+  {
+    q:"What controls the diameter of a bronchiole?",
+    options:["Cartilage rings","Smooth muscle in its wall","Cilia","Pleural fluid"],
+    answer:1,
+    hint:"It's the same type of muscle found in blood vessel walls.",
+    explain:"Bronchioles have smooth muscle in their walls that controls the airway diameter — which is why they can constrict or dilate."
+  },
+  {
+    q:"Where does gas exchange take place in the lungs?",
+    options:["In the bronchioles","In the alveoli","In the trachea","In the pleura"],
+    answer:1,
+    hint:"These are the tiny spherical sacs at the very end of the airway.",
+    explain:"Gas exchange happens at the alveolar–capillary interface in the alveoli."
+  },
+  {
+    q:"The wall of an alveolus is made of:",
+    options:[
+      "Several layers of cartilage",
+      "A single layer of squamous (flat) epithelial cells",
+      "C-shaped cartilage rings",
+      "Smooth muscle and cilia"
+    ],
+    answer:1,
+    hint:"Thin is the whole point — gases have to diffuse across it.",
+    explain:"The alveolar wall is a single layer of squamous epithelium, which keeps the diffusion distance short."
+  },
+  {
+    q:"Which layer of pleura covers the surface of the lung itself?",
+    options:["Parietal pleura","Visceral pleura","Mediastinum","Hilum"],
+    answer:1,
+    hint:"'Visceral' relates to the organ itself.",
+    explain:"The visceral pleura covers the lung; the parietal pleura lines the inside of the chest wall."
+  },
+  {
+    q:"What is pleurisy?",
+    options:[
+      "Inflammation of the pleura that causes pain on breathing",
+      "A collapsed lung",
+      "Fluid inside the alveoli",
+      "Infection of the tonsils"
+    ],
+    answer:0,
+    hint:"It's the condition where the two pleural layers become inflamed.",
+    explain:"Pleurisy is inflammation of the pleura. The layers rub together, causing sharp pain on breathing."
+  },
+  {
+    q:"Why does the left lung have only two lobes while the right has three?",
+    options:[
+      "It is smaller to make room for the heart",
+      "It is not used as much",
+      "It has no pleura",
+      "It has fewer alveoli because of the diaphragm"
+    ],
+    answer:0,
+    hint:"Look at what sits just to the left of the midline.",
+    explain:"The left lung has two lobes to leave space for the heart, which sits in the mediastinum."
+  },
+  {
+    q:"What is the hilum of the lung?",
+    options:[
+      "The top (apex) of the lung",
+      "The area on the medial surface where bronchi, vessels and nerves enter and leave",
+      "The membrane around the lung",
+      "The space between the two lungs"
+    ],
+    answer:1,
+    hint:"It's on the side of the lung that faces the heart.",
+    explain:"The hilum is on the medial surface. The bronchi, blood vessels, lymphatic vessels and nerves all enter and leave the lung here."
+  },
+  {
+    q:"Gas exchange between alveolar air and the blood is called:",
+    options:["Pulmonary ventilation","External respiration","Internal respiration","Transport of gases"],
+    answer:1,
+    hint:"It happens at the lungs, 'outside' the body's tissues.",
+    explain:"External respiration = gas exchange between the alveoli and the blood. Pulmonary ventilation is just moving air in and out."
+  },
+  {
+    q:"Gas exchange between the blood and the tissue cells is called:",
+    options:["External respiration","Internal respiration","Pulmonary ventilation","Ventilation–perfusion matching"],
+    answer:1,
+    hint:"This one happens out at the systemic capillaries.",
+    explain:"Internal respiration is the exchange between blood and tissue cells at the systemic capillaries."
+  },
+  {
+    q:"Which of these is an active, energy-using process?",
+    options:["Quiet expiration","Inspiration","Diffusion in the alveoli","Gas transport in the blood"],
+    answer:1,
+    hint:"Think about which phase needs muscles to contract.",
+    explain:"Inspiration is active — the diaphragm and external intercostals contract. Quiet expiration is passive at rest."
+  },
+  {
+    q:"What happens to the diaphragm during inspiration?",
+    options:[
+      "It relaxes and becomes dome-shaped",
+      "It contracts and flattens",
+      "It contracts and rises up",
+      "It does not move at all"
+    ],
+    answer:1,
+    hint:"It pushes downwards on the abdominal organs.",
+    explain:"The diaphragm contracts and flattens, pushing the abdominal organs down and increasing the height of the thoracic cavity."
+  },
+  {
+    q:"What do the external intercostal muscles do during inspiration?",
+    options:[
+      "Pull the ribs down and in",
+      "Raise the ribs up and out",
+      "Flatten the diaphragm",
+      "Close the epiglottis"
+    ],
+    answer:1,
+    hint:"Think of bucket handles lifting.",
+    explain:"The external intercostals contract and raise the ribs up and out, increasing the width of the thorax."
+  },
+  {
+    q:"Why is quiet expiration described as passive?",
+    options:[
+      "Because air is pushed out by the abdominal muscles",
+      "Because the muscles relax and the elastic tissue of the lungs recoils",
+      "Because the diaphragm contracts",
+      "Because the ribs are lifted"
+    ],
+    answer:1,
+    hint:"Think of a stretched elastic band springing back.",
+    explain:"At rest no muscles contract. The respiratory muscles relax, the elastic tissue recoils, the ribs drop and the diaphragm domes — volume falls and air moves out."
+  },
+  {
+    q:"Which muscles are used in forced expiration, such as blowing up a balloon?",
+    options:[
+      "Diaphragm and external intercostals",
+      "Abdominal wall muscles",
+      "Scalenes and sternocleidomastoid",
+      "The vocal cords"
+    ],
+    answer:1,
+    hint:"They raise the pressure inside the abdomen.",
+    explain:"The abdominal wall muscles contract, raising abdominal pressure and pushing the diaphragm upwards."
+  },
+  {
+    q:"Which muscles are the accessory muscles used in vigorous breathing?",
+    options:[
+      "Abdominal wall muscles",
+      "Scalenes and sternocleidomastoid",
+      "Diaphragm and external intercostals",
+      "Biceps and triceps"
+    ],
+    answer:1,
+    hint:"You can often see them working in the neck and upper chest.",
+    explain:"The scalenes lift the first two ribs and the sternocleidomastoid raises the sternum. Visible use of these is a sign a patient is struggling to breathe."
+  },
+  {
+    q:"What is a normal resting respiratory rate for an adult?",
+    options:["6–10 breaths per minute","12–20 breaths per minute","25–30 breaths per minute","40–50 breaths per minute"],
+    answer:1,
+    hint:"It's one of the basic vital signs — the same range used on early warning scores.",
+    explain:"Around 12–20 breaths per minute is normal for a resting adult. Children generally breathe faster."
+  },
+  {
+    q:"What is the best way to count a patient's respirations?",
+    options:[
+      "Tell them you are counting so they cooperate",
+      "Count discreetly, for example while taking their pulse",
+      "Ask them to take deep breaths and count those",
+      "Count only while they are exercising"
+    ],
+    answer:1,
+    hint:"People change their breathing when they know it's being watched.",
+    explain:"Count discreetly — for example while you are holding their wrist to take the pulse — because awareness alters the breathing pattern."
+  },
+  {
+    q:"What is the approximate oxygen concentration of alveolar air?",
+    options:["21%","16%","13.2%","5.3%"],
+    answer:2,
+    hint:"It is lower than atmospheric air because oxygen is constantly moving into the blood.",
+    explain:"Atmospheric air is about 21% oxygen, but alveolar air is about 13.2% because oxygen diffuses into the pulmonary capillaries."
+  },
+  {
+    q:"Which gas in the air is not significantly absorbed by the lungs?",
+    options:["Oxygen","Carbon dioxide","Nitrogen","Water vapour"],
+    answer:2,
+    hint:"It makes up most of the air but just travels in and out.",
+    explain:"Nitrogen is not significantly absorbed (except under extreme conditions such as deep-sea diving)."
+  },
+  {
+    q:"What is tidal volume?",
+    options:[
+      "The air left in the lungs after a full breath out",
+      "The volume of one normal quiet breath (about 500 mL)",
+      "The maximum volume that can be breathed out",
+      "The air in the airways that never reaches the alveoli"
+    ],
+    answer:1,
+    hint:"'Tidal' refers to the everyday ebb and flow of breathing.",
+    explain:"Tidal volume is the normal breathing volume — about 500 mL per quiet breath in a healthy adult."
+  },
+  {
+    q:"What is residual volume?",
+    options:[
+      "The air that always remains in the lungs (about 1–1.5 L)",
+      "The volume of a normal breath",
+      "The volume of air in the trachea",
+      "The maximum amount of air that can be breathed in"
+    ],
+    answer:0,
+    hint:"It's why you can never completely empty your lungs.",
+    explain:"Residual volume is the air that always stays in the lungs — around 1–1.5 L — and it mixes with each new breath."
+  },
+  {
+    q:"What is dead space?",
+    options:[
+      "Air in the conducting airways that is not involved in gas exchange (about 150 mL)",
+      "Air left in the lungs after breathing out",
+      "The space between the two layers of pleura",
+      "The total volume of the alveoli"
+    ],
+    answer:0,
+    hint:"It's the air sitting in the 'pipes' rather than the 'gas exchange surface'.",
+    explain:"Dead space is the air in the conducting airways (nose, pharynx, larynx, trachea, bronchi) that never reaches the alveoli — around 150 mL in most adults."
+  },
+  {
+    q:"Vital capacity is:",
+    options:[
+      "The greatest amount of air that can be moved in or out of the lungs",
+      "The volume of one normal breath",
+      "The air that always stays in the lungs",
+      "The volume of air in the dead space"
+    ],
+    answer:0,
+    hint:"It's a maximum effort measurement.",
+    explain:"Vital capacity is the maximum breath out after a maximum breath in — roughly 4–5 L in many adults, varying with age, sex, height and fitness."
+  },
+  {
+    q:"Diffusion is best described as:",
+    options:[
+      "Movement of gas from high to low concentration across a membrane",
+      "Active pumping of gas using energy",
+      "Movement of gas from low to high concentration",
+      "Gas being carried by haemoglobin"
+    ],
+    answer:0,
+    hint:"It's passive — no energy required.",
+    explain:"Diffusion is the passive movement of a substance from an area of high concentration to low concentration across a semi-permeable membrane until equilibrium."
+  },
+  {
+    q:"Most oxygen in the blood is carried:",
+    options:[
+      "Dissolved in plasma",
+      "Bound to haemoglobin in red blood cells",
+      "As bicarbonate ions",
+      "Bound to plasma proteins"
+    ],
+    answer:1,
+    hint:"Only a very small fraction travels dissolved in the plasma.",
+    explain:"About 97% of oxygen is carried bound to haemoglobin as oxyhaemoglobin; only around 1.5–3% is dissolved in plasma."
+  },
+  {
+    q:"Most carbon dioxide in the blood is carried:",
+    options:[
+      "Dissolved in plasma",
+      "Bound to haemoglobin",
+      "As bicarbonate ions in the plasma",
+      "As carbon monoxide"
+    ],
+    answer:2,
+    hint:"It's a chemical form rather than a dissolved or bound gas.",
+    explain:"About 60–70% of carbon dioxide is carried as bicarbonate ions (HCO₃⁻); roughly 20–30% is bound to haemoglobin and 7–10% is dissolved in plasma."
+  },
+  {
+    q:"Why might a patient with low haemoglobin become breathless on exertion?",
+    options:[
+      "Their lungs cannot expand properly",
+      "Their blood carries less oxygen, so oxygen delivery to tissues is reduced",
+      "Their respiratory centre is damaged",
+      "Their alveoli are blocked with mucus"
+    ],
+    answer:1,
+    hint:"Haemoglobin is the oxygen-carrying pigment in red blood cells.",
+    explain:"With less haemoglobin there is less oxygen-carrying capacity, so delivery to tissues falls and the breathing rate rises to compensate."
+  },
+  {
+    q:"Which nerve supplies the diaphragm?",
+    options:["Vagus nerve","Phrenic nerve","Intercostal nerve","Sciatic nerve"],
+    answer:1,
+    hint:"It comes down from the neck, not from the chest.",
+    explain:"The diaphragm is supplied by the phrenic nerve; the intercostal muscles are supplied by the intercostal nerves."
+  },
+  {
+    q:"Where is the respiratory centre that controls automatic breathing?",
+    options:[
+      "In the cerebellum",
+      "In the medulla and pons of the brainstem",
+      "In the cerebral cortex",
+      "In the spinal cord"
+    ],
+    answer:1,
+    hint:"It sits low in the brain, just above the spinal cord.",
+    explain:"The respiratory centre is in the medulla and pons. The cerebral cortex provides voluntary control, which is separate."
+  },
+  {
+    q:"What do stretch receptors in the bronchioles and alveoli do?",
+    options:[
+      "Detect oxygen levels in the blood",
+      "Report how inflated the lungs are to the respiratory centre",
+      "Produce mucus",
+      "Control the diameter of the airway"
+    ],
+    answer:1,
+    hint:"They fire when the lungs fill and send inhibitory impulses.",
+    explain:"Stretch receptors tell the respiratory centre how much air is in the lungs, so the rate and depth of breathing can be adjusted."
+  },
+  {
+    q:"Which chemoreceptors respond to a fall in blood oxygen?",
+    options:["Receptors in the carotid artery","Receptors in the alveoli","Receptors in the diaphragm","Receptors in the pleura"],
+    answer:0,
+    hint:"They sit in a major artery in the neck (similar receptors are in the aortic arch).",
+    explain:"Chemoreceptors in the carotid artery detect a fall in circulating oxygen (e.g. at high altitude) and increase the respiratory rate."
+  },
+  {
+    q:"Why is oxygen given carefully (to a target saturation) in some COPD patients?",
+    options:[
+      "Because oxygen is poisonous to them",
+      "Because their breathing drive relies more on low oxygen levels than on carbon dioxide",
+      "Because oxygen damages the alveoli",
+      "Because they are allergic to oxygen"
+    ],
+    answer:1,
+    hint:"In COPD, the usual 'carbon dioxide alarm' becomes blunted.",
+    explain:"COPD patients often have constantly raised carbon dioxide, so they rely more on low oxygen to drive breathing. High-flow oxygen is still given if needed, but to a prescribed target saturation (commonly 88–92%) and monitored closely."
+  },
+  {
+    q:"Which sequence correctly traces air from the nose to the gas-exchange surface?",
+    options:[
+      "Nasal cavity → larynx → pharynx → trachea → bronchioles → alveoli",
+      "Nasal cavity → pharynx → larynx → trachea → bronchi → bronchioles → alveoli",
+      "Pharynx → nasal cavity → trachea → larynx → bronchi → alveoli",
+      "Nasal cavity → trachea → pharynx → larynx → bronchioles → bronchi → alveoli"
+    ],
+    answer:1,
+    hint:"The throat comes before the voice box, and the tubes only branch after the trachea.",
+    explain:"Air passes nasal cavity → pharynx → larynx → trachea → carina → bronchi → bronchioles → terminal/respiratory bronchioles → alveolar ducts → alveoli."
+  }
+];
+
+/* ------------------------------------------------------------------ */
+/*  State and rendering                                                */
+/* ------------------------------------------------------------------ */
+const quizEl     = document.getElementById('quiz');
+const counterEl  = document.getElementById('counter');
+const barEl      = document.getElementById('progressBar');
+const scoreEl    = document.getElementById('scorePanel');
+const finishBtn  = document.getElementById('finishBtn');
+const resetBtn   = document.getElementById('resetBtn');
+
+let answers  = new Array(questions.length).fill(null);
+let finished = false;
+
+function render(){
+  quizEl.innerHTML = questions.map((q, qi) => `
+    <article class="q-card" id="card-${qi}">
+      <div class="q-head">
+        <span class="q-num">${qi + 1}</span>
+        <span class="q-text">${q.q}</span>
+      </div>
+      <div class="options" data-qi="${qi}">
+        ${q.options.map((opt, oi) => `
+          <button class="opt" data-oi="${oi}" type="button">
+            <span class="marker"></span><span>${opt}</span>
+          </button>`).join('')}
+      </div>
+      <div class="q-foot">
+        <button class="hint-btn" type="button">💡 Hint</button>
+      </div>
+      <div class="hint hidden">${q.hint}</div>
+      <div class="explain hidden"></div>
+    </article>
+  `).join('');
+  updateProgress();
+}
+
+function updateProgress(){
+  const answered = answers.filter(a => a !== null).length;
+  counterEl.textContent = `${answered} / ${questions.length} answered`;
+  barEl.style.width = (answered / questions.length * 100) + '%';
+}
+
+/* ------------------------------------------------------------------ */
+/*  Interaction                                                        */
+/* ------------------------------------------------------------------ */
+quizEl.addEventListener('click', (e) => {
+
+  /* Hint toggle */
+  const hintBtn = e.target.closest('.hint-btn');
+  if (hintBtn){
+    const card = hintBtn.closest('.q-card');
+    const hint = card.querySelector('.hint');
+    const showing = !hint.classList.contains('hidden');
+    hint.classList.toggle('hidden', showing);
+    hintBtn.textContent = showing ? '💡 Hint' : '🙈 Hide hint';
+    return;
+  }
+
+  /* Option select */
+  const opt = e.target.closest('.opt');
+  if (opt && !finished){
+    const wrap = opt.parentElement;
+    const qi = Number(wrap.dataset.qi);
+    const oi = Number(opt.dataset.oi);
+    answers[qi] = oi;
+    [...wrap.children].forEach(b => b.classList.remove('selected'));
+    opt.classList.add('selected');
+    updateProgress();
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/*  Finish                                                             */
+/* ------------------------------------------------------------------ */
+finishBtn.addEventListener('click', () => {
+  if (finished) return;
+  finished = true;
+
+  let score = 0;
+
+  questions.forEach((q, qi) => {
+    const card = document.getElementById('card-' + qi);
+    const chosen = answers[qi];
+    const opts = card.querySelectorAll('.opt');
+    const isCorrect = chosen === q.answer;
+    if (isCorrect) score++;
+
+    opts.forEach((btn, oi) => {
+      btn.disabled = true;
+      if (oi === q.answer) btn.classList.add('correct');
+      if (oi === chosen && !isCorrect) btn.classList.add('wrong');
+      btn.classList.remove('selected');
+    });
+
+    const ex = card.querySelector('.explain');
+    ex.classList.remove('hidden');
+    ex.classList.add(isCorrect ? 'good' : 'bad');
+    ex.innerHTML =
+      `<strong>${isCorrect ? '✅ Correct' : '❌ Not quite'}</strong> — ${q.explain}` +
+      (chosen === null ? ' <em>(You did not answer this one.)</em>' : '');
+
+    card.classList.add(isCorrect ? 'card-correct' : 'card-wrong');
+  });
+
+  const pct = Math.round(score / questions.length * 100);
+  let msg;
+  if (pct >= 90)      msg = "Excellent — you have a really solid grasp of the respiratory system.";
+  else if (pct >= 75) msg = "Good work — a few details to brush up on.";
+  else if (pct >= 60) msg = "Not bad — review the highlighted questions below.";
+  else                msg = "Worth another pass through the notes, then have another go.";
+
+  scoreEl.innerHTML = `
+    <div class="big">${score} / ${questions.length}</div>
+    <div class="pct">${pct}%</div>
+    <div class="msg">${msg}</div>
+    <div class="sub">Scroll down to review every question, with the correct answers and explanations shown.</div>
+  `;
+  scoreEl.classList.remove('hidden');
+
+  counterEl.textContent = `Score: ${score} / ${questions.length}`;
+  barEl.style.width = '100%';
+
+  finishBtn.classList.add('hidden');
+  resetBtn.classList.remove('hidden');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* ------------------------------------------------------------------ */
+/*  Reset                                                              */
+/* ------------------------------------------------------------------ */
+resetBtn.addEventListener('click', () => {
+  answers = new Array(questions.length).fill(null);
+  finished = false;
+  scoreEl.classList.add('hidden');
+  scoreEl.innerHTML = '';
+  finishBtn.classList.remove('hidden');
+  resetBtn.classList.add('hidden');
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* ------------------------------------------------------------------ */
+render();
+</script>
+</body>
+</html>
