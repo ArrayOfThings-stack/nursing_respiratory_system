@@ -851,6 +851,7 @@ finishBtn.addEventListener('click', () => {
     <div class="pct">${pct}%</div>
     <div class="msg">${msg}</div>
     <div class="sub">Scroll down to review every question, with the correct answers and explanations shown.</div>
+    <button id="retakeTopBtn" class="btn btn-primary" style="margin-top:16px">Retake quiz</button>
   `;
   scoreEl.classList.remove('hidden');
 
@@ -866,7 +867,7 @@ finishBtn.addEventListener('click', () => {
 /* ------------------------------------------------------------------ */
 /*  Reset                                                              */
 /* ------------------------------------------------------------------ */
-resetBtn.addEventListener('click', () => {
+function resetQuiz(){
   answers = new Array(questions.length).fill(null);
   finished = false;
   scoreEl.classList.add('hidden');
@@ -875,6 +876,13 @@ resetBtn.addEventListener('click', () => {
   resetBtn.classList.add('hidden');
   render();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+resetBtn.addEventListener('click', resetQuiz);
+
+/* Retake button inside the score panel at the top */
+scoreEl.addEventListener('click', (e) => {
+  if (e.target.closest('#retakeTopBtn')) resetQuiz();
 });
 
 /* ------------------------------------------------------------------ */
